@@ -10,6 +10,7 @@ pageextension 50608 "Manufacturer Card Ext" extends "Manufacturers"
                 Image = Dimensions;
                 action(DimensionSingleAction)
                 {
+                    AccessByPermission = TableData Dimension = R;
                     ApplicationArea = Dimensions;
                     Caption = 'Dimension-Single';
                     Image = Dimensions;
