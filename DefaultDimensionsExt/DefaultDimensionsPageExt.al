@@ -1,3 +1,4 @@
+#region 123 - Automatic Create Cost Object Base On Brand For Items
 pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
 {
     layout
@@ -40,3 +41,4 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         end;
     end;
 }
+#endregion 123 - Automatic Create Cost Object Base On Brand For Items

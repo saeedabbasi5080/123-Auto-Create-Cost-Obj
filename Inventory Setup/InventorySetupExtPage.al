@@ -1,3 +1,4 @@
+#region 123 - Automatic Create Cost Object Base On Brand For Items
 pageextension 50609 InventorySetupPageExt extends "Inventory Setup"
 {
     layout
@@ -12,3 +13,4 @@ pageextension 50609 InventorySetupPageExt extends "Inventory Setup"
         }
     }
 }
+#endregion 123 - Automatic Create Cost Object Base On Brand For Items

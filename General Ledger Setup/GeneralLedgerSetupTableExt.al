@@ -1,3 +1,4 @@
+#region 123 - Automatic Create Cost Object Base On Brand For Items
 tableextension 50612 GeneralLedgerSetupTblExt extends "General Ledger Setup"
 {
     fields
@@ -8,3 +9,4 @@ tableextension 50612 GeneralLedgerSetupTblExt extends "General Ledger Setup"
         }
     }
 }
+#endregion 123 - Automatic Create Cost Object Base On Brand For Items
