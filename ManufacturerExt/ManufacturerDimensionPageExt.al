@@ -21,7 +21,7 @@ pageextension 50608 "Manufacturer Card Ext" extends "Manufacturers"
                 {
                     AccessByPermission = TableData Dimension = R;
                     ApplicationArea = Dimensions;
-                    Caption = 'Dimensions-&Multiple';
+                    Caption = 'Dimensions-Multiple';
                     Image = DimensionSets;
                     trigger OnAction()
                     var

@@ -9,7 +9,7 @@
             "server": "http://localhost:8080/BC2019/",
             "serverInstance": "BC2019",
             "authentication": "Windows",
-            "startupObjectId": 5728,
+            "startupObjectId": 31,
             "startupObjectType": "Page",
             "breakOnError": "All",
             "launchBrowser": true,
