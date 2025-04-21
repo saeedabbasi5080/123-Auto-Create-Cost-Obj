@@ -5,6 +5,7 @@ tableextension 50610 ItemDimensionsTableExt extends "Default Dimension"
     {
         modify("Dimension Code")
         {
+
             trigger OnAfterValidate()
             var
                 GeneralLedgerSetup: Record "General Ledger Setup";
@@ -33,6 +34,8 @@ tableextension 50610 ItemDimensionsTableExt extends "Default Dimension"
 
                                 if ManufacturerDim.FindFirst() then begin
                                     Rec."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+                                    Rec."Value Posting" := ManufacturerDim."Value Posting";
+                                    Rec."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
                                 end
                                 else begin
                                     Rec."Dimension Value Code" := '';
@@ -48,6 +51,8 @@ tableextension 50610 ItemDimensionsTableExt extends "Default Dimension"
                     end;
                 end;
             end;
+
+
         }
 
     }
