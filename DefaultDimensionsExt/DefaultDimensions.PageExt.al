@@ -85,8 +85,4 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         end;
     end;
 }
-
-
-
-
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items

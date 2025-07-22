@@ -1,3 +1,4 @@
+#region 123 - Automatic Create Cost Object Base On Brand For Items
 codeunit 50620 "SalesOrderApprovalValidation"
 {
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnBeforeCreateApprovalRequests', '', false, false)]
@@ -6,8 +7,8 @@ codeunit 50620 "SalesOrderApprovalValidation"
         SalesHeader: Record "Sales Header";
         SalesLine: Record "Sales Line";
         Item: Record Item;
-        DefaultDim: Record "Default Dimension";
         ItemDim: Record "Default Dimension";
+        DimSetEntry: Record "Dimension Set Entry"; // اضافه شده
         CostObjectDimCode: Code[20];
         SalesLineDimValue: Code[20];
         ItemDimValue: Code[20];
@@ -21,14 +22,13 @@ codeunit 50620 "SalesOrderApprovalValidation"
             if SalesLine.FindSet() then
                 repeat
                     if SalesLine.Type = SalesLine.Type::Item then begin
-                        // Get Cost Object from Sales Line
+                        // Get Cost Object from Sales Line Global Dimension 3
                         SalesLineDimValue := '';
-                        DefaultDim.Reset();
-                        DefaultDim.SetRange("Table ID", Database::"Sales Line");
-                        DefaultDim.SetRange("No.", SalesLine."Document No.");
-                        DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
-                        if DefaultDim.FindFirst() then
-                            SalesLineDimValue := DefaultDim."Dimension Value Code";
+                        DimSetEntry.Reset();
+                        DimSetEntry.SetRange("Dimension Set ID", SalesLine."Dimension Set ID");
+                        DimSetEntry.SetRange("Dimension Code", CostObjectDimCode);
+                        if DimSetEntry.FindFirst() then
+                            SalesLineDimValue := DimSetEntry."Dimension Value Code";
 
                         // Get Cost Object from Item Card
                         ItemDimValue := '';
@@ -51,3 +51,4 @@ codeunit 50620 "SalesOrderApprovalValidation"
         end;
     end;
 }
+#endregion 123 - Automatic Create Cost Object Base On Brand For Items

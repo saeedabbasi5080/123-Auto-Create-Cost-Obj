@@ -1,5 +1,5 @@
 #region 123 - Automatic Create Cost Object Base On Brand For Items
-pageextension 50608 "Manufacturer Card Ext" extends "Manufacturers"
+pageextension 50608 "Manufacturer Page Ext" extends "Manufacturers"
 {
     actions
     {
