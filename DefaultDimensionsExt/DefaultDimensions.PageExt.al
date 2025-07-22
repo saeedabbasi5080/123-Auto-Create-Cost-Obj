@@ -38,6 +38,8 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
 
 
     trigger OnAfterGetRecord()
+    var
+        InventorySetup: Record "Inventory Setup";
     begin
         GenLedgerSetup.Get();
 
@@ -47,6 +49,10 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         else begin
             RestrictCostObjDimValue := false;
         end;
+
+        InventorySetup.Get();
+        if not InventorySetup."Automatic Assign Cost Object" then
+            exit;
 
         if Rec."Table ID" = Database::Item then begin
             if Rec."Dimension Code" = CostObjectDimCode then begin
