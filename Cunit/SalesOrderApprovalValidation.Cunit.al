@@ -30,15 +30,18 @@ codeunit 50620 "SalesOrderApprovalValidation"
                         if DimSetEntry.FindFirst() then
                             SalesLineDimValue := DimSetEntry."Dimension Value Code";
 
-                        // Get Cost Object from Item Card
+                        // Get Cost Object from Manufacturer of Item Card
                         ItemDimValue := '';
                         if Item.Get(SalesLine."No.") then begin
-                            ItemDim.Reset();
-                            ItemDim.SetRange("Table ID", Database::Item);
-                            ItemDim.SetRange("No.", Item."No.");
-                            ItemDim.SetRange("Dimension Code", CostObjectDimCode);
-                            if ItemDim.FindFirst() then
-                                ItemDimValue := ItemDim."Dimension Value Code";
+                            if Item."Manufacturer Code" <> '' then begin
+                                // پیدا کردن Dimension Value Code مربوط به Manufacturer و COST OBJECT
+                                ItemDim.Reset();
+                                ItemDim.SetRange("Table ID", Database::Manufacturer);
+                                ItemDim.SetRange("No.", Item."Manufacturer Code");
+                                ItemDim.SetRange("Dimension Code", CostObjectDimCode);
+                                if ItemDim.FindFirst() then
+                                    ItemDimValue := ItemDim."Dimension Value Code";
+                            end;
                         end;
 
                         // Compare
