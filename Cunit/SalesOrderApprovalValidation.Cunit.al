@@ -43,7 +43,7 @@ codeunit 50620 "SalesOrderApprovalValidation"
 
                         // Compare
                         if SalesLineDimValue <> ItemDimValue then begin
-                            ErrorText := StrSubstNo('Cost Object dimension value for item %1 does not match the item card.', SalesLine."No.");
+                            ErrorText := StrSubstNo('Cost Object dimension value for item %1 does not match the item card line %2.', SalesLine."No.", SalesLine."Line No.");
                             Error(ErrorText);
                         end;
                     end;

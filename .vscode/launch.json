@@ -6,8 +6,8 @@
             "request": "launch",
             "type": "al",
             "environmentType": "OnPrem",
-            "server": "http://localhost:8080/BC190/",
-            "serverInstance": "BC190",
+            "server": "http://localhost:8080/BCAliasys/",
+            "serverInstance": "BCAliasys",
             "authentication": "Windows",
             "startupObjectId": 31,
             "startupObjectType": "Page",
@@ -17,8 +17,8 @@
             "enableSqlInformationDebugger": true,
             "tenant": "default",
             "usePublicURLFromServer": true,
-            "schemaUpdateMode": "ForceSync",
-            "port": 7049
+            "schemaUpdateMode": "Recreate",
+            "port": 7095
         }
     ]
 }

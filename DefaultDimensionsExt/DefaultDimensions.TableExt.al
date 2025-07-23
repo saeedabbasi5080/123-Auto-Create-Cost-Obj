@@ -1,5 +1,5 @@
 #region 123 - Automatic Create Cost Object Base On Brand For Items
-tableextension 50610 ItemDimensionsTableExt extends "Default Dimension"
+tableextension 50610 DefaultDimensionsTableExt extends "Default Dimension"
 {
     fields
     {
@@ -51,10 +51,7 @@ tableextension 50610 ItemDimensionsTableExt extends "Default Dimension"
                     end;
                 end;
             end;
-
-
         }
-
     }
 }
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items
