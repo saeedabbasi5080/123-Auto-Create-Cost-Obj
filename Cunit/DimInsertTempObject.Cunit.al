@@ -62,6 +62,52 @@ codeunit 50602 DimInsertTempObjectCunit
         end;
     end;
 
+    // EventSubscriber: Update Item Default Dimension when any field of Manufacturer changes
+    [EventSubscriber(ObjectType::Table, Database::Manufacturer, 'OnAfterModifyEvent', '', false, false)]
+    local procedure OnAfterModifyManufacturer(var Rec: Record Manufacturer; xRec: Record Manufacturer; RunTrigger: Boolean)
+    var
+        ItemRec: Record Item;
+        ManufacturerDim: Record "Default Dimension";
+        DefaultDim: Record "Default Dimension";
+        CostObjectDimCode: Code[20];
+    begin
+        // فرض: Dimension Code مورد نظر 'COST OBJECT' است
+        CostObjectDimCode := 'COST OBJECT';
+        // پیدا کردن همه آیتم‌هایی که Manufacturer Code آن‌ها برابر با این Manufacturer است
+        ItemRec.Reset();
+        ItemRec.SetRange("Manufacturer Code", Rec."Code");
+        if ItemRec.FindSet() then
+            repeat
+                // پیدا کردن Dimension مربوط به Manufacturer و Dimension Code مورد نظر
+                ManufacturerDim.Reset();
+                ManufacturerDim.SetRange("Table ID", Database::Manufacturer);
+                ManufacturerDim.SetRange("No.", Rec."Code");
+                ManufacturerDim.SetRange("Dimension Code", CostObjectDimCode);
+                if ManufacturerDim.FindFirst() then begin
+                    // به‌روزرسانی یا درج Dimension روی آیتم
+                    DefaultDim.Reset();
+                    DefaultDim.SetRange("Table ID", Database::Item);
+                    DefaultDim.SetRange("No.", ItemRec."No.");
+                    DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
+                    if DefaultDim.FindFirst() then begin
+                        DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+                        DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+                        DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+                        DefaultDim.Modify();
+                    end else begin
+                        DefaultDim.Init();
+                        DefaultDim."Table ID" := Database::Item;
+                        DefaultDim."No." := ItemRec."No.";
+                        DefaultDim."Dimension Code" := CostObjectDimCode;
+                        DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+                        DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+                        DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+                        DefaultDim.Insert();
+                    end;
+                end;
+            until ItemRec.Next() = 0;
+    end;
+
     // EventSubscriber: Update Item Default Dimension when any dimension of Manufacturer changes
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
     local procedure OnAfterModifyDefaultDimension(var Rec: Record "Default Dimension"; xRec: Record "Default Dimension"; RunTrigger: Boolean)
