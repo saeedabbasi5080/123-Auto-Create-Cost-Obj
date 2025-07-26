@@ -55,34 +55,7 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
             RestrictCostObjDimValue := false;
         end;
 
-        InventorySetup.Get();
-        if not InventorySetup."Automatic Assign Cost Object" then
-            exit;
-
-        if Rec."Table ID" = Database::Item then begin
-            if Rec."Dimension Code" = CostObjectDimCode then begin
-                if ItemRec.Get(Rec."No.") then begin
-                    if ItemRec."Manufacturer Code" <> '' then begin
-                        ManufacturerDim.Reset();
-                        ManufacturerDim.SetRange("Table ID", ManufacturerTableID);
-                        ManufacturerDim.SetRange("No.", ItemRec."Manufacturer Code");
-                        ManufacturerDim.SetRange("Dimension Code", CostObjectDimCode);
-
-                        if ManufacturerDim.FindFirst() then begin
-                            Rec."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
-                            Rec."Value Posting" := ManufacturerDim."Value Posting";
-                            Rec."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
-                        end
-                        else begin
-                            Rec."Dimension Value Code" := '';
-                        end;
-                    end
-                    else begin
-                        Rec."Dimension Value Code" := '';
-                    end;
-                end;
-            end;
-        end;
+        // This code is handled in the main codeunit
     end;
 }
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items

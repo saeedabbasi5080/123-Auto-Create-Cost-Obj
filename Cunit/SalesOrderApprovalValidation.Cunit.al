@@ -8,7 +8,7 @@ codeunit 50620 "SalesOrderApprovalValidation"
         SalesLine: Record "Sales Line";
         Item: Record Item;
         ItemDim: Record "Default Dimension";
-        DimSetEntry: Record "Dimension Set Entry"; // اضافه شده
+        DimSetEntry: Record "Dimension Set Entry"; // Added
         CostObjectDimCode: Code[20];
         SalesLineDimValue: Code[20];
         ItemDimValue: Code[20];
@@ -34,7 +34,7 @@ codeunit 50620 "SalesOrderApprovalValidation"
                         ItemDimValue := '';
                         if Item.Get(SalesLine."No.") then begin
                             if Item."Manufacturer Code" <> '' then begin
-                                // پیدا کردن Dimension Value Code مربوط به Manufacturer و COST OBJECT
+                                // Finding Dimension Value Code related to Manufacturer and COST OBJECT
                                 ItemDim.Reset();
                                 ItemDim.SetRange("Table ID", Database::Manufacturer);
                                 ItemDim.SetRange("No.", Item."Manufacturer Code");
