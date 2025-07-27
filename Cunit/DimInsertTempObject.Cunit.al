@@ -111,6 +111,116 @@ codeunit 50602 DimInsertTempObjectCunit
             until ItemRec.Next() = 0;
     end;
 
+    // [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterInsertEvent', '', false, false)]
+    // local procedure OnAfterInsertDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    // begin
+    //     Message('OnAfterInsertDefaultDimension');
+    //     UpdateItemDimensionsFromManufacturer(Rec."No.");
+
+    // end;
+
+    // [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAftervalidateEvent', 'Dimension Code', false, false)]
+    // local procedure OnAfterValidateDefaultDimension(var Rec: Record "Default Dimension"; var xRec: Record "Default Dimension")
+    // var
+    //     ItemRec: Record Item;
+    //     DefaultDim: Record "Default Dimension";
+    //     ManufacturerDim: Record "Default Dimension";
+    //     InventorySetup: Record "Inventory Setup";
+    // begin
+    //     InventorySetup.Get();
+    //     if not InventorySetup."Automatic Assign Cost Object" then
+    //         exit;
+
+    //     // Only if this dimension is related to Manufacturer
+    //     if Rec."Table ID" = Database::Manufacturer then begin
+    //         // Find items that have this Manufacturer
+    //         ItemRec.Reset();
+    //         ItemRec.SetRange("Manufacturer Code", Rec."No.");
+    //         if ItemRec.FindSet() then
+    //             repeat
+    //                 // Delete all item dimensions
+    //                 DefaultDim.Reset();
+    //                 DefaultDim.SetRange("Table ID", Database::Item);
+    //                 DefaultDim.SetRange("No.", ItemRec."No.");
+    //                 if DefaultDim.FindSet() then
+    //                     repeat
+    //                         DefaultDim.Delete();
+    //                     until DefaultDim.Next() = 0;
+
+    //                 // Add remaining dimensions from Manufacturer
+    //                 ManufacturerDim.Reset();
+    //                 ManufacturerDim.SetRange("Table ID", Database::Manufacturer);
+    //                 ManufacturerDim.SetRange("No.", Rec."No.");
+    //                 if ManufacturerDim.FindSet() then
+    //                     repeat
+    //                         DefaultDim.Init();
+    //                         DefaultDim."Table ID" := Database::Item;
+    //                         DefaultDim."No." := ItemRec."No.";
+    //                         DefaultDim."Dimension Code" := ManufacturerDim."Dimension Code";
+    //                         DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+    //                         DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+    //                         DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+    //                         DefaultDim.Insert();
+    //                     until ManufacturerDim.Next() = 0;
+    //             until ItemRec.Next() = 0;
+    //     end;
+    // end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    var
+        ItemRec: Record Item;
+        DefaultDim: Record "Default Dimension";
+        ManufacturerDim: Record "Default Dimension";
+        InventorySetup: Record "Inventory Setup";
+    begin
+        InventorySetup.Get();
+        if not InventorySetup."Automatic Assign Cost Object" then
+            exit;
+
+        // Only if this dimension is related to Manufacturer
+        if Rec."Table ID" = Database::Manufacturer then begin
+            // Find items that have this Manufacturer
+            ItemRec.Reset();
+            ItemRec.SetRange("Manufacturer Code", Rec."No.");
+            if ItemRec.FindSet() then
+                repeat
+                    // Delete all item dimensions
+                    DefaultDim.Reset();
+                    DefaultDim.SetRange("Table ID", Database::Item);
+                    DefaultDim.SetRange("No.", ItemRec."No.");
+                    if DefaultDim.FindSet() then
+                        repeat
+                            DefaultDim.Delete();
+                        until DefaultDim.Next() = 0;
+
+                    // Add remaining dimensions from Manufacturer
+                    ManufacturerDim.Reset();
+                    ManufacturerDim.SetRange("Table ID", Database::Manufacturer);
+                    ManufacturerDim.SetRange("No.", Rec."No.");
+                    if ManufacturerDim.FindSet() then
+                        repeat
+                            DefaultDim.Init();
+                            DefaultDim."Table ID" := Database::Item;
+                            DefaultDim."No." := ItemRec."No.";
+                            DefaultDim."Dimension Code" := ManufacturerDim."Dimension Code";
+                            DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+                            DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+                            DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+                            DefaultDim.Insert();
+                        until ManufacturerDim.Next() = 0;
+                until ItemRec.Next() = 0;
+        end;
+    end;
+
+    // [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
+    // local procedure OnAfterModifyDefaultDimension(var Rec: Record "Default Dimension"; xRec: Record "Default Dimension"; RunTrigger: Boolean)
+    // begin
+    //     // Only if this record is related to Manufacturer
+    //     if Rec."Table ID" = Database::Manufacturer then
+    //         UpdateItemDimensionsFromManufacturer(Rec."No.");
+    // end;
+
     // EventSubscriber: Update Item Default Dimension when any dimension of Manufacturer changes
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
     local procedure OnAfterModifyDefaultDimension(var Rec: Record "Default Dimension"; xRec: Record "Default Dimension"; RunTrigger: Boolean)
@@ -121,9 +231,11 @@ codeunit 50602 DimInsertTempObjectCunit
         Manufacturer: Record Manufacturer;
         InventorySetup: Record "Inventory Setup";
     begin
+        // Message('OnAfterDeleteDefaultDimension');
         InventorySetup.Get();
         if not InventorySetup."Automatic Assign Cost Object" then
             exit;
+
         // Only if this record is related to the Manufacturer and the Manufacturer Code is valid
         if (Rec."Table ID" = Database::Manufacturer) and Manufacturer.Get(Rec."No.") then begin
             // Find all items that have the same Manufacturer Code
@@ -160,6 +272,7 @@ codeunit 50602 DimInsertTempObjectCunit
     end;
 
     // Return procedure UpdateAllItemsWithSameManufacturer
+
     local procedure UpdateAllItemsWithSameManufacturer(NewManufacturerCode: Code[20]; OldManufacturerCode: Code[20])
     var
         ItemRec: Record Item;
@@ -243,5 +356,56 @@ codeunit 50602 DimInsertTempObjectCunit
                 until ItemRec.Next() = 0;
         end;
     end;
+
+
+    // Local procedure for updating Item Default Dimensions based on Manufacturer
+    // local procedure UpdateItemDimensionsFromManufacturer(ManufacturerCode: Code[20])
+    // var
+    //     ItemRec: Record Item;
+    //     DefaultDim: Record "Default Dimension";
+    //     ManufacturerDim: Record "Default Dimension";
+    //     Manufacturer: Record Manufacturer;
+    //     InventorySetup: Record "Inventory Setup";
+    // begin
+    //     InventorySetup.Get();
+    //     if not InventorySetup."Automatic Assign Cost Object" then
+    //         exit;
+
+    //     // Check if the record is related to Manufacturer and Manufacturer Code is valid
+    //     // if not Manufacturer.Get(ManufacturerCode) then
+    //     //     exit;
+
+    //     // Find all items that have the same Manufacturer Code
+    //     ItemRec.Reset();
+    //     ItemRec.SetRange("Manufacturer Code", ManufacturerCode);
+    //     if ItemRec.FindSet() then
+    //         repeat
+    //             // Delete all existing Default Dimensions for the item
+    //             DefaultDim.Reset();
+    //             DefaultDim.SetRange("Table ID", Database::Item);
+    //             DefaultDim.SetRange("No.", ItemRec."No.");
+    //             if DefaultDim.FindSet() then
+    //                 repeat
+    //                     DefaultDim.Delete();
+    //                 until DefaultDim.Next() = 0;
+
+    //             // For this item, insert ALL Default Dimensions from Manufacturer (not just the changed one)
+    //             ManufacturerDim.Reset();
+    //             ManufacturerDim.SetRange("Table ID", Database::Manufacturer);
+    //             ManufacturerDim.SetRange("No.", ManufacturerCode);
+    //             if ManufacturerDim.FindSet() then
+    //                 repeat
+    //                     DefaultDim.Init();
+    //                     DefaultDim."Table ID" := Database::Item;
+    //                     DefaultDim."No." := ItemRec."No.";
+    //                     DefaultDim."Dimension Code" := ManufacturerDim."Dimension Code";
+    //                     DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+    //                     DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+    //                     DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+    //                     DefaultDim.Insert();
+    //                 until ManufacturerDim.Next() = 0;
+    //         until ItemRec.Next() = 0;
+    // end;
+
 }
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items
