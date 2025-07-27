@@ -27,8 +27,10 @@ pageextension 50608 "Manufacturer Page Ext" extends "Manufacturers"
                     trigger OnAction()
                     var
                         DefaultDimMultiple: Page "Default Dimensions-Multiple";
+                        Manufacturer: Record Manufacturer;
                     begin
-                        DefaultDimMultiple.SetMultiRecord(Rec, Rec.FieldNo("Code"));
+                        CurrPage.SetSelectionFilter(Manufacturer);
+                        DefaultDimMultiple.SetMultiRecord(Manufacturer, Manufacturer.FieldNo("Code"));
                         DefaultDimMultiple.RunModal();
                     end;
                 }
