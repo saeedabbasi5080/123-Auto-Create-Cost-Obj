@@ -6,8 +6,8 @@
             "request": "launch",
             "type": "al",
             "environmentType": "OnPrem",
-            "server": "http://localhost:8080/BC190/",
-            "serverInstance": "BC190",
+            "server": "http://localhost:8080/BCaliasys/",
+            "serverInstance": "BCaliasys",
             "authentication": "Windows",
             "startupObjectId": 31,
             "startupObjectType": "Page",
@@ -18,7 +18,7 @@
             "tenant": "default",
             "usePublicURLFromServer": true,
             "schemaUpdateMode": "Recreate",
-            "port": 7049
+            "port": 7095
         }
     ]
 }

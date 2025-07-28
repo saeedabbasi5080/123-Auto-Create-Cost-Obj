@@ -11,56 +11,80 @@ codeunit 50602 DimInsertTempObjectCunit
         DimensionManagement.DefaultDimInsertTempObject(TempAllObjWithCaption, Database::"Manufacturer");
     end;
 
-
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterValidateEvent', 'Manufacturer Code', false, false)]
-    local procedure OnAfterValidateManufacturerCode(var Rec: Record Item; xRec: Record Item)
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterInsertEvent', '', false, false)]
+    local procedure OnAfterInsertDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
     var
+        ItemRec: Record Item;
         DefaultDim: Record "Default Dimension";
-        ManufacturerDim: Record "Default Dimension";
+        Manufacturer: Record Manufacturer;
         InventorySetup: Record "Inventory Setup";
-        ManufacturerTableID: Integer;
+        CostObjectDimCode: Code[20];
     begin
         InventorySetup.Get();
         if not InventorySetup."Automatic Assign Cost Object" then
             exit;
-        ManufacturerTableID := Database::Manufacturer;
 
-        // حذف همه Default Dimensionهای آیتم که مربوط به Manufacturer قبلی بودند
-        DefaultDim.Reset();
-        DefaultDim.SetRange("Table ID", Database::Item);
-        DefaultDim.SetRange("No.", Rec."No.");
-        DefaultDim.SetRange("Dimension Code");
-        if DefaultDim.FindSet() then
-            repeat
-                // فقط دایمنشن‌هایی که در Manufacturer قبلی وجود داشتند حذف شوند
-                if xRec."Manufacturer Code" <> '' then begin
-                    ManufacturerDim.Reset();
-                    ManufacturerDim.SetRange("Table ID", ManufacturerTableID);
-                    ManufacturerDim.SetRange("No.", xRec."Manufacturer Code");
-                    ManufacturerDim.SetRange("Dimension Code", DefaultDim."Dimension Code");
-                    if ManufacturerDim.FindFirst() then
-                        DefaultDim.Delete();
-                end;
-            until DefaultDim.Next() = 0;
+        if Rec."Table ID" = Database::Item then
+            exit;
 
-        // اضافه کردن دایمنشن‌های Manufacturer جدید
-        if Rec."Manufacturer Code" <> '' then begin
-            ManufacturerDim.Reset();
-            ManufacturerDim.SetRange("Table ID", ManufacturerTableID);
-            ManufacturerDim.SetRange("No.", Rec."Manufacturer Code");
-            if ManufacturerDim.FindSet() then
+        CostObjectDimCode := 'COST OBJECT';
+
+        if (Rec."Table ID" = Database::Manufacturer) and (Rec."Dimension Code" = CostObjectDimCode) and Manufacturer.Get(Rec."No.") then begin
+            ItemRec.Reset();
+            ItemRec.SetRange("Manufacturer Code", Rec."No.");
+            if ItemRec.FindSet() then
                 repeat
-                    DefaultDim.Init();
-                    DefaultDim."Table ID" := Database::Item;
-                    DefaultDim."No." := Rec."No.";
-                    DefaultDim."Dimension Code" := ManufacturerDim."Dimension Code";
-                    DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
-                    DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
-                    DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
-                    DefaultDim.Insert();
-                until ManufacturerDim.Next() = 0;
+                    // اگر قبلاً وجود نداشت، اضافه کن
+                    DefaultDim.Reset();
+                    DefaultDim.SetRange("Table ID", Database::Item);
+                    DefaultDim.SetRange("No.", ItemRec."No.");
+                    DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
+                    if not DefaultDim.FindFirst() then begin
+                        DefaultDim.Init();
+                        DefaultDim."Table ID" := Database::Item;
+                        DefaultDim."No." := ItemRec."No.";
+                        DefaultDim."Dimension Code" := Rec."Dimension Code";
+                        DefaultDim."Dimension Value Code" := Rec."Dimension Value Code";
+                        DefaultDim."Value Posting" := Rec."Value Posting";
+                        DefaultDim."Allowed Values Filter" := Rec."Allowed Values Filter";
+                        DefaultDim.Insert();
+                    end;
+                until ItemRec.Next() = 0;
         end;
     end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    var
+        ItemRec: Record Item;
+        DefaultDim: Record "Default Dimension";
+        ManufacturerDim: Record "Default Dimension";
+        InventorySetup: Record "Inventory Setup";
+        CostObjectDimCode: Code[20];
+    begin
+        InventorySetup.Get();
+        if not InventorySetup."Automatic Assign Cost Object" then
+            exit;
+
+        CostObjectDimCode := 'COST OBJECT';
+
+        if Rec."Table ID" = Database::Manufacturer then begin
+            if Rec."Dimension Code" = CostObjectDimCode then begin
+                ItemRec.Reset();
+                ItemRec.SetRange("Manufacturer Code", Rec."No.");
+                if ItemRec.FindSet() then
+                    repeat
+                        DefaultDim.Reset();
+                        DefaultDim.SetRange("Table ID", Database::Item);
+                        DefaultDim.SetRange("No.", ItemRec."No.");
+                        DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
+                        if DefaultDim.FindFirst() then
+                            DefaultDim.Delete();
+                    until ItemRec.Next() = 0;
+            end;
+        end;
+    end;
+
 
     // EventSubscriber: Update Item Default Dimension when any dimension of Manufacturer changes
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
@@ -68,26 +92,48 @@ codeunit 50602 DimInsertTempObjectCunit
     var
         ItemRec: Record Item;
         DefaultDim: Record "Default Dimension";
+        ManufacturerDim: Record "Default Dimension";
+        Manufacturer: Record Manufacturer;
+        InventorySetup: Record "Inventory Setup";
+        CostObjectDimCode: Code[20];
     begin
-        // فقط اگر این رکورد مربوط به Manufacturer باشد
-        if (Rec."Table ID" = Database::Manufacturer) then begin
-            // پیدا کردن همه آیتم‌هایی که Manufacturer Code آن‌ها برابر با این Manufacturer است
-            ItemRec.Reset();
-            ItemRec.SetRange("Manufacturer Code", Rec."No.");
-            if ItemRec.FindSet() then
-                repeat
-                    // به‌روزرسانی فقط همان Dimension Code برای آیتم
-                    DefaultDim.Reset();
-                    DefaultDim.SetRange("Table ID", Database::Item);
-                    DefaultDim.SetRange("No.", ItemRec."No.");
-                    DefaultDim.SetRange("Dimension Code", Rec."Dimension Code");
-                    if DefaultDim.FindFirst() then begin
-                        DefaultDim."Dimension Value Code" := Rec."Dimension Value Code";
-                        DefaultDim."Value Posting" := Rec."Value Posting";
-                        DefaultDim."Allowed Values Filter" := Rec."Allowed Values Filter";
-                        DefaultDim.Modify();
-                    end;
-                until ItemRec.Next() = 0;
+        InventorySetup.Get();
+        if not InventorySetup."Automatic Assign Cost Object" then
+            exit;
+
+        if Rec."Table ID" = Database::Item then
+            exit; // Only handle Manufacturer dimensions    
+
+        CostObjectDimCode := 'COST OBJECT';
+
+        // Only if this record is related to the Manufacturer and the Manufacturer Code is valid
+        if (Rec."Table ID" = Database::Manufacturer) and Manufacturer.Get(Rec."No.") then begin
+            if Rec."Dimension Code" = CostObjectDimCode then begin
+                ItemRec.Reset();
+                ItemRec.SetRange("Manufacturer Code", Rec."No.");
+                if ItemRec.FindSet() then
+                    repeat
+                        DefaultDim.Reset();
+                        DefaultDim.SetRange("Table ID", Database::Item);
+                        DefaultDim.SetRange("No.", ItemRec."No.");
+                        DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
+                        if DefaultDim.FindFirst() then begin
+                            DefaultDim."Dimension Value Code" := Rec."Dimension Value Code";
+                            DefaultDim."Value Posting" := Rec."Value Posting";
+                            DefaultDim."Allowed Values Filter" := Rec."Allowed Values Filter";
+                            DefaultDim.Modify();
+                        end else begin
+                            DefaultDim.Init();
+                            DefaultDim."Table ID" := Database::Item;
+                            DefaultDim."No." := ItemRec."No.";
+                            DefaultDim."Dimension Code" := Rec."Dimension Code";
+                            DefaultDim."Dimension Value Code" := Rec."Dimension Value Code";
+                            DefaultDim."Value Posting" := Rec."Value Posting";
+                            DefaultDim."Allowed Values Filter" := Rec."Allowed Values Filter";
+                            DefaultDim.Insert();
+                        end;
+                    until ItemRec.Next() = 0;
+            end;
         end;
     end;
 }

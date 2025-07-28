@@ -34,11 +34,6 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         end;
         CostObjectDimCode := 'COST OBJECT';
         ManufacturerTableID := Database::Manufacturer;
-
-        // Filter to show only COST OBJECT dimension for Items
-        // if Rec."Table ID" = Database::Item then begin
-        //     Rec.SetRange("Dimension Code", CostObjectDimCode);
-        // end;
     end;
 
 
