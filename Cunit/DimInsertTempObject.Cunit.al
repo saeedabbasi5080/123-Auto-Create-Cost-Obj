@@ -34,7 +34,6 @@ codeunit 50602 DimInsertTempObjectCunit
             ItemRec.SetRange("Manufacturer Code", Rec."No.");
             if ItemRec.FindSet() then
                 repeat
-                    // اگر قبلاً وجود نداشت، اضافه کن
                     DefaultDim.Reset();
                     DefaultDim.SetRange("Table ID", Database::Item);
                     DefaultDim.SetRange("No.", ItemRec."No.");

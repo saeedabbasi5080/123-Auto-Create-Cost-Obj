@@ -10,6 +10,11 @@ pageextension 50611 GeneralLedgerSetupPageExt extends "General Ledger Setup"
                 Caption = 'Cost Object Value Read-Only';
                 ApplicationArea = All;
             }
+            field("Dimension Consistency"; Rec."Dimension Consistency")
+            {
+                Caption = 'Dimension Consistency';
+                ApplicationArea = All;
+            }
         }
     }
 }

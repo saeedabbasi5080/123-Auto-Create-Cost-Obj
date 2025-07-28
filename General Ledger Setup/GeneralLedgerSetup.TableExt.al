@@ -7,6 +7,10 @@ tableextension 50612 GeneralLedgerSetupTblExt extends "General Ledger Setup"
         {
             Caption = 'Cost Object Value Read-Only';
         }
+        field(50101; "Dimension Consistency"; Boolean)
+        {
+            Caption = 'Dimension Consistency ';
+        }
     }
 }
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items
