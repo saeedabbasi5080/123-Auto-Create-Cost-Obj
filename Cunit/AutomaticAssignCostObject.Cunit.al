@@ -1,5 +1,5 @@
-#region 123 - Automatic Create Cost Object Base On Brand For Items
-codeunit 50602 DimInsertTempObjectCunit
+#region CRID 123 - Automatic Create Cost Object Base On Brand For Items
+codeunit 50602 AutomaticAssignCostObject
 {
     // This event adds the Manufacturer to the TempAllObjWithCaption table
     [EventSubscriber(ObjectType::Codeunit, 408, 'OnAfterDefaultDimObjectNoWithoutGlobalDimsList', '', false, false)]
@@ -13,6 +13,25 @@ codeunit 50602 DimInsertTempObjectCunit
 
     [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterInsertEvent', '', false, false)]
     local procedure OnAfterInsertDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    begin
+        InsertItemDefaultDimFromManufacturer(Rec);
+    end;
+
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterDeleteEvent', '', false, false)]
+    local procedure OnAfterDeleteDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    begin
+        DeleteItemDefaultDimFromManufacturer(Rec);
+    end;
+
+
+    // EventSubscriber: Update Item Default Dimension when any dimension of Manufacturer changes
+    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
+    local procedure OnAfterModifyDefaultDimension(var Rec: Record "Default Dimension"; xRec: Record "Default Dimension"; RunTrigger: Boolean)
+    begin
+        UpdateItemDefaultDimFromManufacturer(Rec);
+    end;
+
+    local procedure InsertItemDefaultDimFromManufacturer(Rec: Record "Default Dimension")
     var
         ItemRec: Record Item;
         DefaultDim: Record "Default Dimension";
@@ -34,7 +53,6 @@ codeunit 50602 DimInsertTempObjectCunit
             ItemRec.SetRange("Manufacturer Code", Rec."No.");
             if ItemRec.FindSet() then
                 repeat
-                    // اگر قبلاً وجود نداشت، اضافه کن
                     DefaultDim.Reset();
                     DefaultDim.SetRange("Table ID", Database::Item);
                     DefaultDim.SetRange("No.", ItemRec."No.");
@@ -53,12 +71,10 @@ codeunit 50602 DimInsertTempObjectCunit
         end;
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterDeleteEvent', '', false, false)]
-    local procedure OnAfterDeleteDefaultDimension(var Rec: Record "Default Dimension"; RunTrigger: Boolean)
+    local procedure DeleteItemDefaultDimFromManufacturer(Rec: Record "Default Dimension")
     var
         ItemRec: Record Item;
         DefaultDim: Record "Default Dimension";
-        ManufacturerDim: Record "Default Dimension";
         InventorySetup: Record "Inventory Setup";
         CostObjectDimCode: Code[20];
     begin
@@ -85,14 +101,10 @@ codeunit 50602 DimInsertTempObjectCunit
         end;
     end;
 
-
-    // EventSubscriber: Update Item Default Dimension when any dimension of Manufacturer changes
-    [EventSubscriber(ObjectType::Table, Database::"Default Dimension", 'OnAfterModifyEvent', '', false, false)]
-    local procedure OnAfterModifyDefaultDimension(var Rec: Record "Default Dimension"; xRec: Record "Default Dimension"; RunTrigger: Boolean)
+    local procedure UpdateItemDefaultDimFromManufacturer(Rec: Record "Default Dimension")
     var
         ItemRec: Record Item;
         DefaultDim: Record "Default Dimension";
-        ManufacturerDim: Record "Default Dimension";
         Manufacturer: Record Manufacturer;
         InventorySetup: Record "Inventory Setup";
         CostObjectDimCode: Code[20];

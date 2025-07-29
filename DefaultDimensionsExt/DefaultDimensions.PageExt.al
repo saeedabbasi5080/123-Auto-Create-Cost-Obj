@@ -1,23 +1,21 @@
-#region 123 - Automatic Create Cost Object Base On Brand For Items
+#region CRID 123 - Automatic Create Cost Object Base On Brand For Items
 pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
 {
     layout
     {
         modify("Dimension Value Code")
         {
-            Editable = not (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
+            Editable = IsCostObjectEditable;
         }
         modify("Value Posting")
         {
-            Editable = not (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
+            Editable = IsCostObjectEditable;
         }
         modify("AllowedValuesFilter")
         {
-            Editable = (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
-
+            Editable = not IsCostObjectEditable;
         }
     }
-
     var
         GenLedgerSetup: Record "General Ledger Setup";
         ItemRec: Record Item;
@@ -25,38 +23,46 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         RestrictCostObjDimValue: Boolean;
         CostObjectDimCode: Code[20];
         ManufacturerTableID: Integer;
+        IsCostObjectEditable: Boolean;
 
     trigger OnOpenPage()
     begin
-        GenLedgerSetup.Get();
-        if Rec."Table ID" = Database::Item then begin
-            RestrictCostObjDimValue := GenLedgerSetup."Cost Object Value Read-Only";
-        end;
-        CostObjectDimCode := 'COST OBJECT';
-        ManufacturerTableID := Database::Manufacturer;
+        SetCostObjectEditability();
     end;
 
-
     trigger OnAfterGetRecord()
+    begin
+        SetCostObjectValuesFromManufacturer();
+    end;
+
+    local procedure SetCostObjectEditability()
+    begin
+        GenLedgerSetup.Get();
+        if Rec."Table ID" = Database::Item then
+            RestrictCostObjDimValue := GenLedgerSetup."Cost Object Value Read-Only";
+        CostObjectDimCode := 'COST OBJECT';
+        ManufacturerTableID := Database::Manufacturer;
+        IsCostObjectEditable := not (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
+    end;
+
+    local procedure SetCostObjectValuesFromManufacturer()
     var
         InventorySetup: Record "Inventory Setup";
     begin
         GenLedgerSetup.Get();
 
-        if Rec."Table ID" = Database::Item then begin
-            RestrictCostObjDimValue := GenLedgerSetup."Cost Object Value Read-Only";
-        end
-        else begin
+        if Rec."Table ID" = Database::Item then
+            RestrictCostObjDimValue := GenLedgerSetup."Cost Object Value Read-Only"
+        else
             RestrictCostObjDimValue := false;
-        end;
 
         InventorySetup.Get();
         if not InventorySetup."Automatic Assign Cost Object" then
             exit;
 
-        if Rec."Table ID" = Database::Item then begin
-            if Rec."Dimension Code" = CostObjectDimCode then begin
-                if ItemRec.Get(Rec."No.") then begin
+        if Rec."Table ID" = Database::Item then
+            if Rec."Dimension Code" = CostObjectDimCode then
+                if ItemRec.Get(Rec."No.") then
                     if ItemRec."Manufacturer Code" <> '' then begin
                         ManufacturerDim.Reset();
                         ManufacturerDim.SetRange("Table ID", ManufacturerTableID);
@@ -67,17 +73,12 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
                             Rec."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
                             Rec."Value Posting" := ManufacturerDim."Value Posting";
                             Rec."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
-                        end
-                        else begin
+                        end else
                             Rec."Dimension Value Code" := '';
-                        end;
-                    end
-                    else begin
+                    end else
                         Rec."Dimension Value Code" := '';
-                    end;
-                end;
-            end;
-        end;
+
+        IsCostObjectEditable := not (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
     end;
 }
-#endregion 123 - Automatic Create Cost Object Base On Brand For Items
+#endregion CRID 123 - Automatic Create Cost Object Base On Brand For Items

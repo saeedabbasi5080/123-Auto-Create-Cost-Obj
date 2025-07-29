@@ -5,34 +5,8 @@ codeunit 50622 "CostObjectApprovalValidation"
 
     [EventSubscriber(ObjectType::Codeunit, Codeunit::"Approvals Mgmt.", 'OnBeforeCreateApprovalRequests', '', false, false)]
     local procedure OnBeforeCreateApprovalRequests(RecRef: RecordRef; WorkflowStepInstance: Record "Workflow Step Instance"; var IsHandled: Boolean)
-    var
-        SalesHeader: Record "Sales Header";
-        PurchaseHeader: Record "Purchase Header";
-        TransferHeader: Record "Transfer Header";
-        ServiceHeader: Record "Service Header";
     begin
-        case RecRef.Number of
-            Database::"Sales Header":
-                begin
-                    RecRef.SetTable(SalesHeader);
-                    CostObjectValidator.ValidateSalesDocumentCostObject(SalesHeader."Document Type", SalesHeader."No.");
-                end;
-            Database::"Purchase Header":
-                begin
-                    RecRef.SetTable(PurchaseHeader);
-                    CostObjectValidator.ValidatePurchaseDocumentCostObject(PurchaseHeader."Document Type", PurchaseHeader."No.");
-                end;
-            Database::"Transfer Header":
-                begin
-                    RecRef.SetTable(TransferHeader);
-                    CostObjectValidator.ValidateTransferDocumentCostObject(TransferHeader."No.");
-                end;
-            Database::"Service Header":
-                begin
-                    RecRef.SetTable(ServiceHeader);
-                    CostObjectValidator.ValidateServiceDocumentCostObject(ServiceHeader);
-                end;
-        end;
+        ValidateCostObjectByRecRef(RecRef);
     end;
 
     // Sales Events
@@ -128,12 +102,7 @@ codeunit 50622 "CostObjectApprovalValidation"
     [EventSubscriber(ObjectType::Codeunit, 5760, 'OnBeforePostSourceDocument', '', false, false)]
     local procedure OnBeforePostSourceDocument(var WhseRcptLine: Record "Warehouse Receipt Line"; PurchaseHeader: Record "Purchase Header"; SalesHeader: Record "Sales Header"; TransferHeader: Record "Transfer Header"; var CounterSourceDocOK: Integer; HideValidationDialog: Boolean; var IsHandled: Boolean)
     begin
-        if PurchaseHeader."No." <> '' then
-            CostObjectValidator.ValidatePurchaseDocumentCostObject(PurchaseHeader."Document Type", PurchaseHeader."No.");
-        if SalesHeader."No." <> '' then
-            CostObjectValidator.ValidateSalesDocumentCostObject(SalesHeader."Document Type", SalesHeader."No.");
-        if TransferHeader."No." <> '' then
-            CostObjectValidator.ValidateTransferDocumentCostObject(TransferHeader."No.");
+        ValidateCostObjectByHeaders(PurchaseHeader, SalesHeader, TransferHeader);
     end;
 
     // Requisition Events
@@ -141,5 +110,46 @@ codeunit 50622 "CostObjectApprovalValidation"
     local procedure OnBeforeCarryOutActionMsg(var RequisitionLine: Record "Requisition Line"; var IsHandled: Boolean)
     begin
         CostObjectValidator.ValidateRequisitionLineCostObject(RequisitionLine);
+    end;
+
+    local procedure ValidateCostObjectByRecRef(RecRef: RecordRef)
+    var
+        SalesHeader: Record "Sales Header";
+        PurchaseHeader: Record "Purchase Header";
+        TransferHeader: Record "Transfer Header";
+        ServiceHeader: Record "Service Header";
+    begin
+        case RecRef.Number of
+            Database::"Sales Header":
+                begin
+                    RecRef.SetTable(SalesHeader);
+                    CostObjectValidator.ValidateSalesDocumentCostObject(SalesHeader."Document Type", SalesHeader."No.");
+                end;
+            Database::"Purchase Header":
+                begin
+                    RecRef.SetTable(PurchaseHeader);
+                    CostObjectValidator.ValidatePurchaseDocumentCostObject(PurchaseHeader."Document Type", PurchaseHeader."No.");
+                end;
+            Database::"Transfer Header":
+                begin
+                    RecRef.SetTable(TransferHeader);
+                    CostObjectValidator.ValidateTransferDocumentCostObject(TransferHeader."No.");
+                end;
+            Database::"Service Header":
+                begin
+                    RecRef.SetTable(ServiceHeader);
+                    CostObjectValidator.ValidateServiceDocumentCostObject(ServiceHeader);
+                end;
+        end;
+    end;
+
+    local procedure ValidateCostObjectByHeaders(PurchaseHeader: Record "Purchase Header"; SalesHeader: Record "Sales Header"; TransferHeader: Record "Transfer Header")
+    begin
+        if PurchaseHeader."No." <> '' then
+            CostObjectValidator.ValidatePurchaseDocumentCostObject(PurchaseHeader."Document Type", PurchaseHeader."No.");
+        if SalesHeader."No." <> '' then
+            CostObjectValidator.ValidateSalesDocumentCostObject(SalesHeader."Document Type", SalesHeader."No.");
+        if TransferHeader."No." <> '' then
+            CostObjectValidator.ValidateTransferDocumentCostObject(TransferHeader."No.");
     end;
 }

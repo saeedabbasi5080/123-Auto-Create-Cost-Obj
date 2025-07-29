@@ -1,4 +1,4 @@
-#region 123 - Automatic Create Cost Object Base On Brand For Items
+#region CRID 123 - Automatic Create Cost Object Base On Brand For Items
 pageextension 50611 GeneralLedgerSetupPageExt extends "General Ledger Setup"
 {
     layout
@@ -13,4 +13,4 @@ pageextension 50611 GeneralLedgerSetupPageExt extends "General Ledger Setup"
         }
     }
 }
-#endregion 123 - Automatic Create Cost Object Base On Brand For Items
+#endregion CRID 123 - Automatic Create Cost Object Base On Brand For Items

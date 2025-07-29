@@ -1,4 +1,4 @@
-#region 123 - Automatic Create Cost Object Base On Brand For Items
+#region CRID 123 - Automatic Create Cost Object Base On Brand For Items
 pageextension 50608 "Manufacturer Page Ext" extends "Manufacturers"
 {
     actions
@@ -38,4 +38,4 @@ pageextension 50608 "Manufacturer Page Ext" extends "Manufacturers"
         }
     }
 }
-#endregion 123 - Automatic Create Cost Object Base On Brand For Items
+#endregion CRID 123 - Automatic Create Cost Object Base On Brand For Items
