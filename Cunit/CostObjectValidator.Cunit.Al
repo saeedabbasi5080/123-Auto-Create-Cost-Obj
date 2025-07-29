@@ -1,9 +1,15 @@
 codeunit 50621 "Cost Object Validator"
 {
+    var
+        GenLegSetup: Record "General Ledger Setup";
+
     procedure ValidateSalesDocumentCostObject(DocumentType: Enum "Sales Document Type"; DocumentNo: Code[20])
     var
         SalesLine: Record "Sales Line";
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         SalesLine.SetRange("Document Type", DocumentType);
         SalesLine.SetRange("Document No.", DocumentNo);
         if SalesLine.FindSet() then
@@ -17,6 +23,9 @@ codeunit 50621 "Cost Object Validator"
     var
         PurchaseLine: Record "Purchase Line";
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         PurchaseLine.SetRange("Document Type", DocumentType);
         PurchaseLine.SetRange("Document No.", DocumentNo);
         if PurchaseLine.FindSet() then
@@ -30,6 +39,9 @@ codeunit 50621 "Cost Object Validator"
     var
         TransferLine: Record "Transfer Line";
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         TransferLine.SetRange("Document No.", DocumentNo);
         if TransferLine.FindSet() then
             repeat
@@ -41,6 +53,9 @@ codeunit 50621 "Cost Object Validator"
     var
         ServiceLine: Record "Service Line";
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         ServiceLine.SetRange("Document Type", ServiceHeader."Document Type");
         ServiceLine.SetRange("Document No.", ServiceHeader."No.");
         if ServiceLine.FindSet() then
@@ -52,11 +67,17 @@ codeunit 50621 "Cost Object Validator"
 
     procedure ValidateItemJournalCostObject(ItemJournalLine: Record "Item Journal Line")
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         ValidateLineCostObject(ItemJournalLine."Item No.", ItemJournalLine."Dimension Set ID", ItemJournalLine.TableCaption, ItemJournalLine."Line No.");
     end;
 
     procedure ValidateRequisitionLineCostObject(RequisitionLine: Record "Requisition Line")
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         if RequisitionLine.Type = RequisitionLine.Type::Item then
             ValidateLineCostObject(RequisitionLine."No.", RequisitionLine."Dimension Set ID", RequisitionLine.TableCaption, RequisitionLine."Line No.");
     end;
@@ -71,6 +92,9 @@ codeunit 50621 "Cost Object Validator"
         ItemDimValue: Code[20];
         ErrorText: Text;
     begin
+        GenLegSetup.Get();
+        if not GenLegSetup."Dimension Consistency" then
+            exit;
         CostObjectDimCode := 'COST OBJECT';
 
         // Get Cost Object from Document Line Dimension
