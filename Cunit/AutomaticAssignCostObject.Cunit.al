@@ -31,8 +31,8 @@ codeunit 50602 AutomaticAssignCostObject
         UpdateItemDefaultDimFromManufacturer(Rec);
     end;
 
-    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterModifyEvent', '', false, false)]
-    local procedure OnAfterModifyItem(var Rec: Record Item; xRec: Record Item; RunTrigger: Boolean)
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterValidateEvent', 'Manufacturer Code', false, false)]
+    local procedure OnAfterValidateItem(var Rec: Record Item; xRec: Record Item)
     begin
         SyncItemCostObjectDefaultDimWithManufacturer(Rec, xRec);
     end;
@@ -45,8 +45,7 @@ codeunit 50602 AutomaticAssignCostObject
         InventorySetup: Record "Inventory Setup";
         CostObjectDimCode: Code[20];
     begin
-        InventorySetup.Get();
-        if not InventorySetup."Automatic Assign Cost Object" then
+        if not IsAutoAssignCostObjectEnabled then
             exit;
 
         if Rec."Table ID" = Database::Item then
@@ -84,8 +83,7 @@ codeunit 50602 AutomaticAssignCostObject
         InventorySetup: Record "Inventory Setup";
         CostObjectDimCode: Code[20];
     begin
-        InventorySetup.Get();
-        if not InventorySetup."Automatic Assign Cost Object" then
+        if not IsAutoAssignCostObjectEnabled then
             exit;
 
         CostObjectDimCode := 'COST OBJECT';
@@ -115,8 +113,7 @@ codeunit 50602 AutomaticAssignCostObject
         InventorySetup: Record "Inventory Setup";
         CostObjectDimCode: Code[20];
     begin
-        InventorySetup.Get();
-        if not InventorySetup."Automatic Assign Cost Object" then
+        if not IsAutoAssignCostObjectEnabled then
             exit;
 
         if Rec."Table ID" = Database::Item then
@@ -163,8 +160,7 @@ codeunit 50602 AutomaticAssignCostObject
         ManufacturerTableID: Integer;
         CostObjectDimCode: Code[20];
     begin
-        InventorySetup.Get();
-        if not InventorySetup."Automatic Assign Cost Object" then
+        if not IsAutoAssignCostObjectEnabled then
             exit;
         ManufacturerTableID := Database::Manufacturer;
         CostObjectDimCode := 'COST OBJECT';
@@ -199,6 +195,14 @@ codeunit 50602 AutomaticAssignCostObject
                 end;
             end;
         end;
+    end;
+
+    local procedure IsAutoAssignCostObjectEnabled(): Boolean
+    var
+        InventorySetup: Record "Inventory Setup";
+    begin
+        InventorySetup.Get();
+        exit(InventorySetup."Automatic Assign Cost Object");
     end;
 }
 #endregion 123 - Automatic Create Cost Object Base On Brand For Items
