@@ -120,7 +120,7 @@ codeunit 50621 "Cost Object Validator"
 
         // Compare and throw error if mismatch
         if LineDimValue <> ItemDimValue then begin
-            ErrorText := StrSubstNo('Cost Object dimension value for item %1 does not match the item card in %2 line %3.', ItemNo, DocumentType, LineNo);
+            ErrorText := StrSubstNo('Cost Object dimension value for item %1 does not match the item card in %2, line %3.', ItemNo, DocumentType, LineNo);
             Error(ErrorText);
         end;
     end;

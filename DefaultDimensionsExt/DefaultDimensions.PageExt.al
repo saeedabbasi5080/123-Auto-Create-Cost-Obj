@@ -13,7 +13,7 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
         }
         modify("AllowedValuesFilter")
         {
-            Editable = not IsCostObjectEditable;
+            Editable = IsCostObjectEditable;
         }
     }
     var
@@ -73,10 +73,8 @@ pageextension 50612 DefaultDimensionsPageExt extends "Default Dimensions"
                             Rec."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
                             Rec."Value Posting" := ManufacturerDim."Value Posting";
                             Rec."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
-                        end else
-                            Rec."Dimension Value Code" := '';
-                    end else
-                        Rec."Dimension Value Code" := '';
+                        end;
+                    end;
 
         IsCostObjectEditable := not (RestrictCostObjDimValue and (Rec."Dimension Code" = CostObjectDimCode));
     end;

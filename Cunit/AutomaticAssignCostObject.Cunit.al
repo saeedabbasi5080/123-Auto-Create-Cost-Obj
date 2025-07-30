@@ -31,6 +31,12 @@ codeunit 50602 AutomaticAssignCostObject
         UpdateItemDefaultDimFromManufacturer(Rec);
     end;
 
+    [EventSubscriber(ObjectType::Table, Database::Item, 'OnAfterModifyEvent', '', false, false)]
+    local procedure OnAfterModifyItem(var Rec: Record Item; xRec: Record Item; RunTrigger: Boolean)
+    begin
+        SyncItemCostObjectDefaultDimWithManufacturer(Rec, xRec);
+    end;
+
     local procedure InsertItemDefaultDimFromManufacturer(Rec: Record "Default Dimension")
     var
         ItemRec: Record Item;
@@ -145,6 +151,52 @@ codeunit 50602 AutomaticAssignCostObject
                             DefaultDim.Insert();
                         end;
                     until ItemRec.Next() = 0;
+            end;
+        end;
+    end;
+
+    local procedure SyncItemCostObjectDefaultDimWithManufacturer(var ItemRec: Record Item; xItemRec: Record Item)
+    var
+        DefaultDim: Record "Default Dimension";
+        ManufacturerDim: Record "Default Dimension";
+        InventorySetup: Record "Inventory Setup";
+        ManufacturerTableID: Integer;
+        CostObjectDimCode: Code[20];
+    begin
+        InventorySetup.Get();
+        if not InventorySetup."Automatic Assign Cost Object" then
+            exit;
+        ManufacturerTableID := Database::Manufacturer;
+        CostObjectDimCode := 'COST OBJECT';
+
+        // Only if the Manufacturer Code has changed
+        if ItemRec."Manufacturer Code" <> xItemRec."Manufacturer Code" then begin
+            // Delete only COST OBJECT Default Dimensions for the item
+            DefaultDim.Reset();
+            DefaultDim.SetRange("Table ID", Database::Item);
+            DefaultDim.SetRange("No.", ItemRec."No.");
+            DefaultDim.SetRange("Dimension Code", CostObjectDimCode);
+            if DefaultDim.FindSet() then
+                repeat
+                    DefaultDim.Delete();
+                until DefaultDim.Next() = 0;
+
+            // Add new COST OBJECT dimension from Manufacturer if exists
+            if ItemRec."Manufacturer Code" <> '' then begin
+                ManufacturerDim.Reset();
+                ManufacturerDim.SetRange("Table ID", ManufacturerTableID);
+                ManufacturerDim.SetRange("No.", ItemRec."Manufacturer Code");
+                ManufacturerDim.SetRange("Dimension Code", CostObjectDimCode);
+                if ManufacturerDim.FindFirst() then begin
+                    DefaultDim.Init();
+                    DefaultDim."Table ID" := Database::Item;
+                    DefaultDim."No." := ItemRec."No.";
+                    DefaultDim."Dimension Code" := ManufacturerDim."Dimension Code";
+                    DefaultDim."Dimension Value Code" := ManufacturerDim."Dimension Value Code";
+                    DefaultDim."Value Posting" := ManufacturerDim."Value Posting";
+                    DefaultDim."Allowed Values Filter" := ManufacturerDim."Allowed Values Filter";
+                    DefaultDim.Insert();
+                end;
             end;
         end;
     end;
